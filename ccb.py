@@ -108,14 +108,15 @@ def main():
     st.header("Usage Graph")
     if benefits:
         names = list(benefits.keys())
-        usage = [details["used"] for details in benefits.values()]
-        if not names or not usage:
+        # convert stored fractional usage values to percentages for visualization
+        usage_percentages = [details["used"] * 100 for details in benefits.values()]
+        if not names or not usage_percentages:
             st.write("No valid benefits available for visualization.")
             return
-        colors = ["green" if u < 0.5 else "orange" if u < 0.8 else "red" for u in usage]
-        
+        colors = ["green" if u < 50 else "orange" if u < 80 else "red" for u in usage_percentages]
+
         fig, ax = plt.subplots()
-        ax.bar(names, usage, color=colors)
+        ax.bar(names, usage_percentages, color=colors)
         ax.set_xlabel("Benefit")
         ax.set_ylabel("Usage (%)")
         ax.set_title("Credit Card Benefits Usage")
