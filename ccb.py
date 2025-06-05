@@ -7,14 +7,21 @@ import os
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
-# File to store the benefits data
-DATA_FILE = "credit_card_benefits.json"
+# Default file to store the benefits data
+# The location can be customized with the BENEFITS_DATA_FILE environment variable.
+DEFAULT_DATA_FILE = "credit_card_benefits.json"
+
+
+def get_data_file():
+    """Return the path to the benefits data file."""
+    return os.getenv("BENEFITS_DATA_FILE", DEFAULT_DATA_FILE)
 
 # Section 2: Load and Save Benefits Data
 def load_benefits():
-    if os.path.exists(DATA_FILE):
+    data_file = get_data_file()
+    if os.path.exists(data_file):
         try:
-            with open(DATA_FILE, "r") as file:
+            with open(data_file, "r") as file:
                 return json.load(file)
         except (json.JSONDecodeError, IOError) as e:
             st.error(f"Error loading benefits file: {e}")
@@ -24,8 +31,9 @@ def load_benefits():
     return {}
 
 def save_benefits():
+    data_file = get_data_file()
     try:
-        with open(DATA_FILE, "w") as file:
+        with open(data_file, "w") as file:
             json.dump(benefits, file, indent=4)
     except IOError as e:
         st.error(f"Error saving benefits file: {e}")
