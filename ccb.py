@@ -5,6 +5,7 @@ import streamlit as st
 import json
 import os
 import matplotlib.pyplot as plt
+import pandas as pd
 from datetime import datetime, timedelta
 
 # Default file to store the benefits data
@@ -122,6 +123,18 @@ def main():
     if benefits:
         cards = sorted({details.get("card", "") for details in benefits.values() if details.get("card")})
         selected_card = st.selectbox("Filter by Card", ["All"] + cards)
+
+        # Convert the benefits dictionary to a DataFrame for easier export
+        df = (
+            pd.DataFrame.from_dict(benefits, orient="index")
+            .reset_index()
+            .rename(columns={"index": "Benefit"})
+        )
+
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Download CSV", csv, "benefits.csv", mime="text/csv"
+        )
 
         for name, details in benefits.items():
             if selected_card != "All" and details.get("card") != selected_card:
