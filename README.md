@@ -23,3 +23,9 @@ docker run -p 8501:8501 \
 ```
 
 If the variable is not set, the default file path will be used.
+
+## Exporting benefits
+
+A **Download CSV** button is available in the app. It converts the stored
+benefits dictionary to a table and lets you export the information as a CSV
+file for easy analysis.
