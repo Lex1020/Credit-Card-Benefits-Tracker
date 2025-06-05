@@ -22,7 +22,13 @@ def load_benefits():
     if os.path.exists(data_file):
         try:
             with open(data_file, "r") as file:
-                return json.load(file)
+                data = json.load(file)
+                # Ensure backward compatibility with files missing the 'card' field
+                if isinstance(data, dict):
+                    for details in data.values():
+                        if isinstance(details, dict) and "card" not in details:
+                            details["card"] = ""
+                return data
         except (json.JSONDecodeError, IOError) as e:
             st.error(f"Error loading benefits file: {e}")
             return {}
@@ -68,16 +74,23 @@ def main():
     st.header("Add a New Benefit")
     name = st.text_input("Benefit Name")
     description = st.text_input("Description")
+    card = st.text_input("Card")
     reset_interval = st.selectbox("Reset Interval", ["Monthly", "Yearly", "5 Years"])
 
     if st.button("Add Benefit"):
-        if name and description:
-            benefits[name] = {"description": description, "used": 0.0, "reset_interval": reset_interval, "next_reset": calculate_reset_time(reset_interval)}
+        if name and description and card:
+            benefits[name] = {
+                "description": description,
+                "card": card,
+                "used": 0.0,
+                "reset_interval": reset_interval,
+                "next_reset": calculate_reset_time(reset_interval),
+            }
             save_benefits()
             st.success(f"Benefit '{name}' added successfully!")
             st.rerun()
         else:
-            st.warning("Please enter both name and description.")
+            st.warning("Please enter name, description, and card.")
 
     # Update benefit usage
     st.header("Update Benefit Usage")
@@ -107,8 +120,16 @@ def main():
     # Display benefits
     st.header("Current Benefits")
     if benefits:
+        cards = sorted({details.get("card", "") for details in benefits.values() if details.get("card")})
+        selected_card = st.selectbox("Filter by Card", ["All"] + cards)
+
         for name, details in benefits.items():
-            st.write(f"**{name}**: {details['description']} - Used: {details['used'] * 100:.0f}%, Resets: {details['next_reset']}")
+            if selected_card != "All" and details.get("card") != selected_card:
+                continue
+            card_info = f" ({details['card']})" if details.get("card") else ""
+            st.write(
+                f"**{name}**{card_info}: {details['description']} - Used: {details['used'] * 100:.0f}%, Resets: {details['next_reset']}"
+            )
     else:
         st.write("No benefits recorded yet.")
 
